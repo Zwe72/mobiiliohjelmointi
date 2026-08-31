@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { TextInput, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { TextInput, View, Text, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
 
 export default function Calculator() {
   const [number1, setNumber1] = useState('');
   const [number2, setNumber2] = useState('');
   const [result, setResult] = useState<number | null>(null);
   const [error, setError] = useState('');
+  const [history, setHistory] = useState<string[]>([]);
 
   const calculate = (operation: '+' | '-') => {
     if (number1.trim() === '' || number2.trim() === '') {
@@ -26,11 +27,23 @@ export default function Calculator() {
     setError('');
 
     if (operation === '+') {
-      setResult(num1 + num2);
-    } else {
-      setResult(num1 - num2);
-    }
-  };
+      const sum = num1 + num2;
+      setResult(sum);
+      
+      setHistory(prevHistory => [
+        ...prevHistory,
+        `${num1} + ${num2} = ${sum}`,
+      ]);
+  } else {
+    const diff = num1 - num2;
+    setResult(diff);
+
+    setHistory(prevHistory => [
+      ...prevHistory,
+      `${num1} - ${num2} = ${diff}`,
+    ]);
+  }
+}
 
   return (
     <View style={styles.container}>
@@ -75,6 +88,16 @@ export default function Calculator() {
       {result !== null && (
         <Text style={styles.result}>Tulos: {result}</Text>
       )}
+
+      <Text style={styles.historyTitle}>Historia</Text>
+      
+      <FlatList
+      data={history}
+      renderItem={({ item }) => (
+        <Text style={styles.historyItem}>{item}</Text>
+      )}
+      keyExtractor={(_item, index) => index.toString()}
+      />
     </View>
   );
 }
@@ -131,5 +154,19 @@ const styles = StyleSheet.create({
   error: {
     color: 'red',
     marginTop: 15,
+  },
+
+  historyTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginTop: 25,
+    marginBottom: 10,
+    color: 'black',
+},
+
+  historyItem: {
+    fontSize: 18,
+    marginBottom: 8,
+    color: 'black',
   },
 });
