@@ -1,12 +1,15 @@
-import { useState } from 'react';
-import { TextInput, View, Text, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
+import { Calculation, CalculatorContext } from '@/contexts/CalculatorProvider';
+import { Link } from 'expo-router';
+import { useContext, useState } from 'react';
+import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function Calculator() {
   const [number1, setNumber1] = useState('');
   const [number2, setNumber2] = useState('');
   const [result, setResult] = useState<number | null>(null);
   const [error, setError] = useState('');
-  const [history, setHistory] = useState<string[]>([]);
+
+  const { setHistory } = useContext(CalculatorContext);
 
   const calculate = (operation: '+' | '-') => {
     if (number1.trim() === '' || number2.trim() === '') {
@@ -30,20 +33,30 @@ export default function Calculator() {
       const sum = num1 + num2;
       setResult(sum);
       
-      setHistory(prevHistory => [
+      setHistory((prevHistory: Calculation[]) => [
         ...prevHistory,
-        `${num1} + ${num2} = ${sum}`,
+        {
+          number1: num1,
+          number2: num2,
+          operation: "+",
+          result: sum,
+        }
       ]);
   } else {
     const diff = num1 - num2;
     setResult(diff);
 
-    setHistory(prevHistory => [
+    setHistory((prevHistory: Calculation[]) => [
       ...prevHistory,
-      `${num1} - ${num2} = ${diff}`,
+      {
+          number1: num1,
+          number2: num2,
+          operation: "-",
+          result: diff,
+        },
     ]);
   }
-}
+};
 
   return (
     <View style={styles.container}>
@@ -89,15 +102,10 @@ export default function Calculator() {
         <Text style={styles.result}>Tulos: {result}</Text>
       )}
 
-      <Text style={styles.historyTitle}>Historia</Text>
-      
-      <FlatList
-      data={history}
-      renderItem={({ item }) => (
-        <Text style={styles.historyItem}>{item}</Text>
-      )}
-      keyExtractor={(_item, index) => index.toString()}
-      />
+      <Link href="/(laskin)/laskinHistoria" style={styles.historyButton}>
+        <Text style={styles.historyButtonText}>Historia</Text>
+      </Link>
+
     </View>
   );
 }
@@ -156,17 +164,17 @@ const styles = StyleSheet.create({
     marginTop: 15,
   },
 
-  historyTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginTop: 25,
-    marginBottom: 10,
-    color: 'black',
-},
+  historyButton: {
+    backgroundColor: 'lightgray',
+    paddingVertical: 12,
+    paddingHorizontal: 25,
+    borderRadius: 8,
+    marginTop: 30,
+  },
 
-  historyItem: {
+  historyButtonText: {
     fontSize: 18,
-    marginBottom: 8,
+    fontWeight: 'bold',
     color: 'black',
   },
 });
