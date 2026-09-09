@@ -17,8 +17,12 @@ export default function HomeScreen() {
                 <MyLink>Laskin</MyLink>
             </Link>
 
-            <Link href="/ostoslista" style={styles.button}>
-                <MyLink>Ostoslista</MyLink>
+            <Link href="/reseptinhaku" style={styles.button}>
+                <MyLink>Reseptien haku</MyLink>
+            </Link>
+
+            <Link href="/muunnin" style={styles.button}>
+                <MyLink>Valuuttamuunnin</MyLink>
             </Link>
         </view>
     );
