@@ -17,6 +17,10 @@ export default function HomeScreen() {
                 <MyLink>Laskin</MyLink>
             </Link>
 
+            <Link href="/ostoslista" style={styles.button}>
+                <MyLink>Ostoslista</MyLink>
+            </Link>
+            
             <Link href="/reseptinhaku" style={styles.button}>
                 <MyLink>Reseptien haku</MyLink>
             </Link>
@@ -39,6 +43,7 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         padding: 20,
         backgroundColor: "white",
+        gap:10,
     },
 
     title: {
