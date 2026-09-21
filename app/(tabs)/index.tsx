@@ -1,12 +1,12 @@
 import { Link } from "expo-router";
 import { PropsWithChildren } from "react";
-import { StyleSheet, Text } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
 
 export default function HomeScreen() {
 
     return (
-        <view style={styles.container}>
+        <View style={styles.container}>
             <Text style={styles.title}>Welcome!</Text>
 
             <Link href="/arvauspeli" style={styles.button}>
@@ -20,7 +20,7 @@ export default function HomeScreen() {
             <Link href="/ostoslista" style={styles.button}>
                 <MyLink>Ostoslista</MyLink>
             </Link>
-            
+
             <Link href="/reseptinhaku" style={styles.button}>
                 <MyLink>Reseptien haku</MyLink>
             </Link>
@@ -28,7 +28,12 @@ export default function HomeScreen() {
             <Link href="/muunnin" style={styles.button}>
                 <MyLink>Valuuttamuunnin</MyLink>
             </Link>
-        </view>
+
+            <Link href="/kartta" style={styles.button}>
+                <MyLink>Kartta</MyLink>
+            </Link>
+
+        </View>
     );
 }
 
