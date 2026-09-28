@@ -1,30 +1,41 @@
-import { useSQLiteContext } from "expo-sqlite";
+import { db } from "@/firebaseConfig";
+import { onValue, push, ref, remove, set } from "firebase/database";
 import { useEffect, useState } from "react";
 import { FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 
 type OstosItem = {
-    id: number;
+    id: string;
     product: string;
     amount: string;
 };
 
-export default function ostoslista() {
-    const db = useSQLiteContext();
-
+export default function ostoslista2() {
     const [product, setProduct] = useState("");
     const [amount, setAmount] = useState("");
     const [items,setItems] = useState<OstosItem[]>([]);
 
-    const loadItems = async() => {
-        const result = await db.getAllAsync<OstosItem>(
-            "SELECT * FROM ostoslista ORDER BY id DESC"
-        );
-
-        setItems(result);
-    };
-
     useEffect(() => {
-        loadItems();
+        const shoppingListRef = ref(db, "ShoppingList");
+
+        const unsubscribe = onValue(shoppingListRef, (snapshot) => {
+          const data = snapshot.val();
+
+          if (data) {
+            const list: OstosItem[] = Object.entries(data).map(
+              ([id, item]: [string, any]) => ({
+                id,
+                product: item.product,
+                amount: item.amount,
+              })
+            );
+
+            setItems(list);
+          } else {
+            setItems([]);
+          }
+        });
+
+        return () => unsubscribe();
     }, []);
 
     const addItem = async () => {
@@ -32,30 +43,24 @@ export default function ostoslista() {
             return;
         }
 
-        await db.runAsync(
-            "INSERT INTO ostoslista (product, amount) VALUES (?, ?)",
-            product.trim(),
-            amount.trim()
-        );
+        const newItemRef = push(ref(db, "ShoppingList"));
+
+        await set(newItemRef, {
+          product: product.trim(),
+          amount: amount.trim(),
+        });
 
         setProduct("");
         setAmount("");
-
-        await loadItems();
     };
 
-    const boughtItem = async (id: number) => {
-        await db.runAsync(
-            "DELETE FROM ostoslista WHERE id = ?",
-            id
-        );
-
-        await loadItems();
+    const boughtItem = async (id: string) => {
+        await remove(ref(db, `ShoppingList/${id}`));
     };
 
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Ostoslista-SQLite</Text>
+            <Text style={styles.title}>Ostoslista-Firebase</Text>
 
             <TextInput
             style={styles.input}
@@ -77,7 +82,7 @@ export default function ostoslista() {
 
             <FlatList
             data={items}
-            keyExtractor={(item) => item.id.toString()}
+            keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
                 <View style={styles.item}>
                     <View>

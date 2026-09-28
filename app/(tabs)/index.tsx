@@ -18,7 +18,11 @@ export default function HomeScreen() {
             </Link>
 
             <Link href="/ostoslista" style={styles.button}>
-                <MyLink>Ostoslista</MyLink>
+                <MyLink>Ostoslista(SQLite)</MyLink>
+            </Link>
+
+            <Link href="/ostoslista2" style={styles.button}>
+                <MyLink>Ostoslista(Firebase)</MyLink>
             </Link>
 
             <Link href="/reseptinhaku" style={styles.button}>
