@@ -1,142 +1,163 @@
-import { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
+import { useSQLiteContext } from "expo-sqlite";
+import { useEffect, useState } from "react";
+import { FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 
-export default function GuessGame() {
-  const [guess, setGuess] = useState('');
-  const [message, setMessage] = useState('');
-  const [guessCount, setGuessCount] = useState(0);
-  const [fail, setFail] = useState(false);
+type OstosItem = {
+    id: number;
+    product: string;
+    amount: string;
+};
 
-  const [randomNumber] = useState(
-    Math.floor(Math.random() * 100) + 1
-  );
+export default function ostoslista() {
+    const db = useSQLiteContext();
 
-  const makeGuess = () => {
-    if (guess.trim() === '') {
-      setMessage('Syötä ensin numero.');
-      return
-    }
+    const [product, setProduct] = useState("");
+    const [amount, setAmount] = useState("");
+    const [items,setItems] = useState<OstosItem[]>([]);
 
-    const userGuess = Number(guess);
+    const loadItems = async() => {
+        const result = await db.getAllAsync<OstosItem>(
+            "SELECT * FROM ostoslista ORDER BY id DESC"
+        );
 
-    if (isNaN(userGuess) || userGuess < 1 || userGuess > 100) {
-      setMessage('Syötä kokonaisluku väliltä 1-100.');
-      return
-    }
+        setItems(result);
+    };
 
-    const newGuessCount = guessCount + 1;
-    setGuessCount(newGuessCount);
+    useEffect(() => {
+        loadItems();
+    }, []);
 
-    if (userGuess < randomNumber) {
-      setMessage('Arvaus on liian pieni.');
-    } else if ( userGuess > randomNumber) {
-      setMessage('Arvaus on liian suuri');
-    } else {
-      setMessage(
-        `Oikein! Arvasit numeron ${randomNumber}. Arvauksia: ${newGuessCount}`
-      );
-      setFail(true);
-    }
+    const addItem = async () => {
+        if (product.trim() === "" || amount.trim() === "") {
+            return;
+        }
 
-    setGuess('');
-  };
+        await db.runAsync(
+            "INSERT INTO ostoslista (product, amount) VALUES (?, ?)",
+            product.trim(),
+            amount.trim()
+        );
 
-  return(
-    <View style={styles.container}>
-      <Text style={styles.title}>Arvauspeli</Text>
+        setProduct("");
+        setAmount("");
 
-      <Text style={styles.instructions}>
-        Arvaa numero väliltä 1-100
-      </Text>
+        await loadItems();
+    };
 
-      <TextInput
-      style={styles.input}
-      placeholder="Syötä arvaus"
-      keyboardType="numeric"
-      value={guess}
-      onChangeText={setGuess}
-      editable={!fail}
-      />
+    const boughtItem = async (id: number) => {
+        await db.runAsync(
+            "DELETE FROM ostoslista WHERE id = ?",
+            id
+        );
 
-      <TouchableOpacity
-      style={styles.button}
-      onPress={makeGuess}
-      disabled={fail}
-      >
-        <Text style={styles.buttonText}>Make Guess</Text>
-      </TouchableOpacity>
+        await loadItems();
+    };
 
-      {message !== '' && (
-        <Text style={styles.message}>{message}</Text>
-      )}
+    return (
+        <View style={styles.container}>
+            <Text style={styles.title}>Ostoslista</Text>
 
-      {fail && (
-        <Text style={styles.guessCount}>
-          Peli päättyi
-        </Text>
-      )}
-    </View>
-  );
+            <TextInput
+            style={styles.input}
+            placeholder="Tuote"
+            value={product}
+            onChangeText={setProduct}
+            />
+
+            <TextInput
+            style={styles.input}
+            placeholder="Määrä"
+            value={amount}
+            onChangeText={setAmount}
+            />
+
+            <TouchableOpacity style={styles.button} onPress={addItem}>
+                <Text style={styles.buttonText}>Lisää</Text>
+            </TouchableOpacity>
+
+            <FlatList
+            data={items}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={({ item }) => (
+                <View style={styles.item}>
+                    <View>
+                        <Text style={styles.product}>{item.product}</Text>
+                        <Text style={styles.amount}>{item.amount}</Text>
+                    </View>
+
+                    <TouchableOpacity onPress={() => boughtItem(item.id)}>
+                        <Text style={styles.bought}>bought</Text>
+                    </TouchableOpacity>
+                </View>
+            )}
+            />
+        </View>
+    );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
     padding: 20,
-    backgroundColor: 'white',
+    paddingTop: 60,
+    backgroundColor: "white",
   },
 
   title: {
     fontSize: 32,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 20,
-    color: 'black',
-  },
-
-  instructions: {
-    fontSize: 18,
-    marginBottom: 20,
-    color: 'black',
+    color: "black",
   },
 
   input: {
-    width: '80%',
     borderWidth: 1,
-    borderColor: 'gray',
+    borderColor: "gray",
     borderRadius: 8,
     padding: 12,
     fontSize: 18,
-    marginBottom: 15,
-    color: 'black',
-    backgroundColor: 'white',
+    marginBottom: 10,
+    color: "black",
   },
 
   button: {
-    backgroundColor: 'lightgray',
-    paddingVertical: 12,
-    paddingHorizontal: 25,
+    backgroundColor: "lightgray",
+    padding: 14,
     borderRadius: 8,
+    alignItems: "center",
+    marginBottom: 20,
   },
 
   buttonText: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: 'black',
+    fontWeight: "bold",
+    color: "black",
   },
 
-  message: {
-    fontSize: 18,
-    marginTop: 20,
-    textAlign: 'center',
-    color: 'black',
+  item: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ddd",
   },
 
-  guessCount: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginTop: 10,
-    color: 'black',
+  product: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "black",
+  },
+
+  amount: {
+    fontSize: 16,
+    color: "gray",
+    marginTop: 4,
+  },
+
+  bought: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "black",
   },
 });

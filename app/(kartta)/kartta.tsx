@@ -2,7 +2,7 @@ import * as Location from "expo-location";
 import React, { useState } from "react";
 import { Button, FlatList, StyleSheet, Text, View } from "react-native";
 
-export default function Kartta() {
+export default function kartta() {
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
   const [stations, setStations] = useState<any[]>([]);
 
