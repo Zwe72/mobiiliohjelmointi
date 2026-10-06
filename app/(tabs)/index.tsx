@@ -37,6 +37,13 @@ export default function HomeScreen() {
                 <MyLink>Kartta</MyLink>
             </Link>
 
+            <Link href="/contactsandsms" style={styles.button}>
+                <MyLink>Expo Contacts & SMS</MyLink>
+            </Link>
+
+            <Link href="/speech" style={styles.button}>
+                <MyLink>Expo Speech</MyLink>
+            </Link>
         </View>
     );
 }
